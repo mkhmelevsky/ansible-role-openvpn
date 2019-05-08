@@ -1,2 +1,26 @@
 ---
-# tasks file for ansible-role-openvpn
+# file: tasks/main.yml
+
+- name: OpenVPN | Installation
+  when: openvpn_enabled
+  block:
+    - name: OpenVPN | Include platform specific variables
+      include_vars: '{{ platform_vars }}'
+      with_first_found:
+        - "openvpn-{{ ansible_distribution }}.yml"
+        - "openvpn-{{ ansible_os_family }}.yml"
+      loop_control:
+        loop_var: platform_vars
+      tags: [ openvpn ]
+
+    - name: OpenVPN | Install required packages
+      include_tasks: "{{ platform }}"
+      with_first_found:
+        - "openvpn-setup-{{ ansible_distribution }}.yml"
+        - "openvpn-setup-{{ ansible_os_family }}.yml"
+        - "not-supported.yml"
+      loop_control:
+        loop_var: platform
+      tags: [ openvpn ]
+
+...

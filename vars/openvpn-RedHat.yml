@@ -1,0 +1,12 @@
+---
+# file: vars/common-RedHat.yml
+
+openvpn_redhat_packages:
+  - "ca-certificates"
+  - "iproute"
+  - "shadow-utils"
+  - "openssl"
+  - "lz4"
+  - "lzo"
+
+...

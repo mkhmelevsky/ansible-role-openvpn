@@ -1,0 +1,65 @@
+{{ ansible_managed | comment }}
+
+{%- set client=item -%}
+
+client
+
+dev {{ openvpn_dev }}
+proto {{ openvpn_proto }}
+cipher {{ openvpn_cipher }}
+remote {{openvpn_host}} {{openvpn_port}}
+
+resolv-retry {{ openvpn_resolv_retry }}
+
+nobind
+
+persist-key
+persist-tun
+
+{% if openvpn_unified_client_profiles %}
+<ca>
+{{ openvpn_ca_file_contents }}
+</ca>
+
+<cert>
+{{ openvpn_client_cert_output |default([{'item':client,'stdout':''}])|selectattr('item', 'equalto', client)|map(attribute='stdout')|list|first }}
+</cert>
+
+<key>
+{{ openvpn_client_keys_output |default([{'item':client,'stdout':''}])|selectattr('item', 'equalto', client)|map(attribute='stdout')|list|first }}
+</key>
+
+{% if openvpn_tls_auth %}
+key-direction 1
+
+<tls-auth>
+{{ openvpn_tls_auth_file_contents | default('') }}
+</tls-auth>
+{% endif %}
+
+{% else %}
+ca ca.crt
+cert {{ client }}.crt
+key {{ client }}.key
+
+ns-cert-type server
+
+{% if openvpn_tls_auth and not openvpn_unified_client_profiles -%}
+tls-auth {{ openvpn_tls_key }} 1
+{% endif %}
+
+{% if openvpn_comp_lzo -%}
+comp-lzo
+{% else -%}
+;comp-lzo
+{% endif %}
+
+verb {{ openvpn_verb }}
+
+{% if openvpn_use_pam or openvpn_use_ldap %}
+auth-user-pass
+{% endif %}
+
+{% for option in openvpn_client_options %}
+{{ option }}
+{% endfor %}

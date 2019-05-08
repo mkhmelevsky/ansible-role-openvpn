@@ -1,0 +1,54 @@
+---
+# file: tasks/setup-common-RedHat.yml
+
+- name: Install OpenVPN packages
+  become: True
+  block:
+    - name: EPEL | Ensure that latest EPEL repository is installed
+      yum:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+        state: present
+      when: ansible_distribution_major_version == "6" or ansible_distribution_major_version == "7"
+      register: task_result
+      retries: 3
+      delay: 2
+      until: task_result is succeeded
+
+    - name: OpenVPN | Install packages for RedHat
+      yum:
+        name: '{{ openvpn_redhat_packages }}'
+        state: present
+        update_cache: "{{ openvpn_yum_update_cache }}"
+      register: task_result
+      retries: 3
+      delay: 2
+      until: task_result is succeeded
+
+    - name: OpenVPN | Install easy-rsa package
+      when: openvpn_use_system_easyrsa
+      yum:
+        name: "easy-rsa"
+        state: present
+      register: task_result
+      retries: 3
+      delay: 2
+      until: task_result is succeeded
+
+    - name: OpenVPN | Install plugin for LDAP authentication
+      when: openvpn_use_ldap
+      yum:
+        name: "openvpn-auth-ldap"
+        state: present
+      register: task_result
+      retries: 3
+      delay: 2
+      until: task_result is succeeded
+
+    # - name: OpenVPN | Enable and restart OpenVPN service
+    #   service:
+    #     name: openvpn
+    #     enabled: True
+    #     state: restarted
+    #   tags: [ openvpn ]
+
+...

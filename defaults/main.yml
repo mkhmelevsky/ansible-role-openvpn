@@ -1,2 +1,78 @@
 ---
-# defaults file for ansible-role-openvpn
+# file: defaults/main.yml
+
+openvpn_enabled: yes                                # The role is enabled
+
+openvpn_etcdir: /etc/openvpn
+openvpn_keydir: "{{openvpn_etcdir}}/keys"
+
+# Installation options
+openvpn_yum_update_cache: False
+openvpn_use_system_easyrsa: False
+
+openvpn_key_country: US
+openvpn_key_province: FL
+openvpn_key_city: SomeCity
+openvpn_key_org: SomeOrganisation
+openvpn_key_email: me@myhost.mydomain
+openvpn_key_ou: OrganisationalUnit
+openvpn_key_size: 2048
+
+# Default settings (See OpenVPN documentation)
+
+openvpn_host: "{{ inventory_hostname }}"            # The server address
+openvpn_port: 1194                                  # Which TCP/UDP port should OpenVPN listen on?
+openvpn_proto: udp                                  # TCP or UDP server?
+openvpn_dev: tun                                    # "dev tun" will create a routed IP tunnel, "dev tap" will create an ethernet tunnel
+openvpn_server: 10.8.0.0 255.255.255.0              # Set empty for skip
+openvpn_bridge: {}
+openvpn_max_clients: 100                            # The maximum number of concurrently connected clients we want to allow
+openvpn_log: /var/log/openvpn.log                   # Log's directory
+openvpn_keepalive: "10 120"
+openvpn_ifconfig_pool_persist: ip-pool.txt          # Maintain a record of client <-> virtual IP address associations in this file
+openvpn_comp_lzo: True                              # Enable compression
+openvpn_cipher: BF-CBC                              # Encryption algorithm
+openvpn_status: openvpn-status.log
+openvpn_verb: 3
+openvpn_tls_auth : False                            # Enable perfect forward secracyxy
+openvpn_tls_key  : "ta.key"
+openvpn_user: nobody
+openvpn_group: nogroup
+openvpn_resolv_retry: infinite
+openvpn_client_to_client: True
+openvpn_inactive: 600                               # Delete client instances after some period of inactivity
+
+openvpn_server_options: []                          # Additional server options
+                                                    # openvpn_server_options:
+                                                    # - dev-node MyTap
+                                                    # - client-to-client
+openvpn_client_options: []                          # Additional client options
+                                                    # openvpn_client_options:
+                                                    # - dev-node MyTap
+                                                    # - client-to-client
+
+openvpn_sndbuf: 524288
+openvpn_rcvbuf: 524288
+
+
+
+# LDAP authentication and configuration (optional)
+openvpn_use_ldap: False                           # Use external LDAP server
+openvpn_ldap_tlsenable: "no"
+openvpn_ldap_follow_referrals: "no"
+
+# Use simple authentication (default is disabled)
+openvpn_simple_auth: False
+openvpn_simple_auth_password: ""
+
+# Use PAM authentication
+openvpn_use_pam: True
+openvpn_use_pam_users: []                         # If empty use system users
+                                                  # otherwise use users from the option
+                                                  # openvpn_use_pam_users:
+                                                  # - { name: user, password: password }
+
+# Whether to embed CA, cert, and key info inside client OVPN config file.
+openvpn_unified_client_profiles: False
+
+...

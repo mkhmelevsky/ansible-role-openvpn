@@ -1,0 +1,134 @@
+{{ ansible_managed | comment }}
+
+# Which local IP address should OpenVPN listen on? (optional)
+{% if openvpn_local is defined -%}
+local {{ openvpn_local }}
+{% else -%}
+#local a.b.c.d {% endif %}
+
+port {{ openvpn_port }}
+
+proto {{ openvpn_proto }}
+
+cipher {{ openvpn_cipher }}
+
+dev {{ openvpn_dev }}
+
+{% if openvpn_tun_mtu is defined -%}
+tun-mtu {{ openvpn_tun_mtu }}
+{% else -%}
+#tun-mtu 1200 {% endif %}
+
+{% if openvpn_link_mtu is defined -%}
+link-mtu {{ openvpn_link_mtu }}
+{% else -%}
+link-mtu 1500 {% endif %}
+
+{% if openvpn_server and not openvpn_bridge %}
+server {{ openvpn_server }}
+{% endif %}
+
+{% if openvpn_bridge %}
+server-bridge {{ openvpn_bridge.address }} {{ openvpn_bridge.netmask }} {{ openvpn_bridge.dhcp_start }} {{ openvpn_bridge.dhcp_end }}
+{% endif %}
+
+{% if openvpn_tls_auth -%}
+tls-server
+tls-auth {{ openvpn_keydir }}/{{ openvpn_tls_key }} 0
+{% endif %}
+
+ca {{openvpn_keydir}}/ca.crt
+cert {{openvpn_keydir}}/server.crt
+key {{openvpn_keydir}}/server.key  # This file should be kept secret
+dh {{openvpn_keydir}}/dh{{ openvpn_key_size }}.pem
+
+
+ifconfig-pool-persist {{ openvpn_ifconfig_pool_persist }}
+
+keepalive {{ openvpn_keepalive }}
+
+
+# Client configuration directory.
+{% if openvpn_client_config_dir is defined -%}
+client-config-dir {{ openvpn_client_config_dir }}
+{% endif %}
+
+{% if openvpn_comp_lzo -%}
+comp-lzo
+{% endif %}
+
+persist-tun
+persist-key
+
+status {{ openvpn_status }}
+
+log-append  {{ openvpn_log }}
+
+{% if openvpn_inactive is defined -%}
+inactive {{ openvpn_inactive }}
+{% endif %}
+
+sndbuf {{ openvpn_sndbuf }}
+rcvbuf {{ openvpn_rcvbuf }}
+push "sndbuf {{ openvpn_sndbuf }}"
+push "rcvbuf {{ openvpn_rcvbuf }}"
+
+verb {{ openvpn_verb }}
+
+max-clients {{ openvpn_max_clients }}
+
+{% if openvpn_user -%}
+user {{ openvpn_user }}
+{% else -%}
+;user nobody
+{% endif %}
+
+{% if openvpn_group -%}
+group {{ openvpn_group }}
+{% else -%}
+;group nogroup
+{% endif %}
+
+
+{% if openvpn_user -%}
+user {{ openvpn_user }}
+{% else -%}
+;user nobody
+{% endif %}
+{% if openvpn_group -%}
+group {{ openvpn_group }}
+{% else -%}
+group nogroup
+{% endif %}
+
+{% if openvpn_client_to_client %}
+client-to-client
+{% endif %}
+
+{% if openvpn_use_pam %}
+client-cert-not-required
+plugin {{ openvpn_use_pam_plugin | default(openvpn_use_pam_plugin_distribution) }} openvpn
+{% endif %}
+
+{% if openvpn_use_ldap %}
+plugin {{ openvpn_use_ldap_plugin | default(openvpn_use_ldap_plugin_distribution) }} "/etc/openvpn/auth-ldap.conf"
+{% endif %}
+
+
+{% if openvpn_use_ldap %}
+plugin {{ openvpn_use_ldap_plugin | default(openvpn_use_ldap_plugin_distribution) }} "/etc/openvpn/auth-ldap.conf"
+{% endif %}
+
+{% if openvpn_simple_auth and openvpn_simple_auth_password %}
+auth-user-pass-verify auth-client.sh via-env
+script-security 3 execve
+{% endif %}
+
+{% for option in openvpn_server_options %}
+{{ option }}
+{% endfor %}
+
+{% if crl_pem_file.stat.exists %}
+crl-verify {{ openvpn_keydir }}/crl.pem
+{% endif %}
+
